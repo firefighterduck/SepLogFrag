@@ -67,6 +67,20 @@ by (metis finite.simps fv_expr.elims)
 lemma fv_finite_un: "\<exists>v. v \<notin> fv (x::expr) \<union> fv (y::expr)"
 using fv_finite_expr Finite_Set.finite_Un Finite_Set.ex_new_if_finite infinite_UNIV_listI by metis
 
+lemma fv_other_x: "\<And>x. \<exists>x'. x' \<notin> fv (e::expr) \<and> x' \<noteq> x"
+  using fv_finite_expr fv_finite_un by (metis Un_iff fv_expr.simps(2) insertI1)
+
+lemma fv_other_x_un: "x \<notin> fv (e1::expr) \<union> fv (e2::expr) \<Longrightarrow> \<exists>x'. x' \<notin> fv (e1::expr) \<union> fv (e2::expr) \<and> x' \<noteq> x"
+proof -
+assume assm: "x \<notin> fv (e1::expr) \<union> fv (e2::expr)"
+have "finite (fv e1 \<union> fv e2)" using fv_finite_expr by simp
+hence "\<not>finite(-(fv e1 \<union> fv e2))" by (meson finite_compl infinite_UNIV_listI)
+moreover have "\<not>finite (S::string set) \<Longrightarrow> \<forall>y \<in> S. \<exists>y' \<in> S. y\<noteq>y'" for S
+by (metis (no_types, hide_lams) finite.simps insertCI insert_absorb insert_is_Un subsetI subset_antisym sup_ge1)
+ultimately obtain y where "y \<in> -(fv e1 \<union> fv e2)" "y\<noteq>x" using assm by auto
+thus ?thesis by auto
+qed
+
 text \<open>Orthogonality property of heaps\<close>
 abbreviation "orthogonal h1 h2 \<equiv> dom h1 \<inter> dom h2 = {}"
 notation orthogonal ("_ \<bottom> _" [60, 61] 61)
@@ -208,4 +222,17 @@ lemmas subst_distinct_formula = subst_distinct_formula1 subst_distinct_formula2
   subst_distinct_formula3 subst_distinct_formula4 subst_distinct_formula5
   subst_preserve_True subst_preserve_emp
 
+lemma subst_reflexive: "\<acute>x`=E \<Longrightarrow> subst x E (e::expr) = e"
+using subst_expr.elims by metis
+  
+lemma subst_fv_expr: "\<acute>x`\<noteq>E \<Longrightarrow> x \<notin> fv (subst x E (e::expr))"
+  by (metis empty_iff expr.exhaust fv_expr.simps(1) fv_expr.simps(2) insert_iff
+    subst_expr.simps(2) subst_not_eq_expr)
+
+lemma subst_fv_expr_set: "\<acute>x`\<noteq>E \<Longrightarrow> fv (subst x E (e::expr)) \<supseteq> (fv e - {x})"
+  using subst_fv_expr by (metis Diff_cancel Diff_subset fv_expr.simps(2) subst_not_eq_expr)
+
+lemma subst_fv_expr_set_un: 
+  "\<acute>x`\<noteq>E \<Longrightarrow> fv (subst x E (e1::expr)) \<union> fv (subst x E (e2::expr)) \<supseteq> (fv e1 \<union> fv e2) - {x}"
+  using subst_fv_expr_set by auto
 end
