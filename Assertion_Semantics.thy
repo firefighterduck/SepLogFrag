@@ -137,6 +137,20 @@ next
 text \<open>Due to this theorem circular list segements can only be formulated as follows:\<close>
 term "\<acute>x`\<longmapsto>\<acute>y` * ls(\<acute>y`,\<acute>y`) * emp"
 
+text \<open>The heap has no influence on the satisfaction of a pure formula\<close>
+corollary heap_pure: "(s,h)\<Turnstile>Pure P \<Longrightarrow>\<forall>h'. (s,h')\<Turnstile>Pure P"
+  by (induction s h "Pure P" rule: sat_induct) auto
+corollary heap_puref: "(s,h)\<Turnstile>PureF \<Pi> \<Longrightarrow>\<forall>h'. (s,h')\<Turnstile>PureF \<Pi>"
+proof (induction s h "PureF \<Pi>" arbitrary: \<Pi> rule: sat_induct)
+  case (TrueSat s h)
+  then show ?case by fast
+next
+  case (ConjSat s h P \<Pi>')
+  then show ?case using heap_pure by blast
+qed
+
+
+text \<open>The following lemmata are used to proof the substitution rule\<close>
 lemma subst_expr: "\<lbrakk>\<acute>x`\<rbrakk>s = \<lbrakk>E\<rbrakk>s \<Longrightarrow> \<lbrakk>subst x E e\<rbrakk>s = \<lbrakk>e\<rbrakk>s"
 using subst_expr.elims by metis
 
