@@ -8,7 +8,7 @@ text \<open>Entailments formalize single deduction steps in separation logic\<cl
 text \<open>An entailment describes that the consequent is satisfied by at least all states that also 
       satisfy the antecedent\<close>
 definition entails :: "formula \<Rightarrow> formula \<Rightarrow> bool" (infix "\<turnstile>" 50) where
-  "\<Pi>\<Sigma> \<turnstile> \<Pi>\<Sigma>' \<equiv> (\<forall>s h. (s,h)\<Turnstile>\<Pi>\<Sigma> \<longrightarrow> (s,h)\<Turnstile>\<Pi>\<Sigma>')"
+  "antecedent \<turnstile> consequent \<equiv> (\<forall>s h. (s,h)\<Turnstile>antecedent \<longrightarrow> (s,h)\<Turnstile>consequent)"
 
 text \<open>Auxiliary lemma to lift reasoning from Isabelle/HOL to Isabelle/Pure\<close>
 lemma entailment_lift: "(\<And>s h. (s,h)\<Turnstile>\<Pi>\<Sigma> \<Longrightarrow> (s,h)\<Turnstile>\<Pi>\<Sigma>') \<Longrightarrow> \<Pi>\<Sigma> \<turnstile> \<Pi>\<Sigma>'"
@@ -56,16 +56,6 @@ proof (rule entailment_lift)
   moreover have "1 = Suc 0" by simp
   ultimately have "(s,h)\<Turnstile>ls\<^sup>1(x,y)" using ListSegment[of x s v h "\<lbrakk>y\<rbrakk>s" x' y Map.empty h 0 1] by blast
   thus "(s,h)\<Turnstile>Spat(ls(x, y))" by blast
-qed
-
-lemma two_entail_ls: "[x\<noteq>\<^sub>py,z\<noteq>\<^sub>py] \<bar> [x\<longmapsto>z, z\<longmapsto>y] \<turnstile> Spat (ls(x,y))"
-proof (rule entailment_lift)
-  fix s h
-  assume antecedent: "(s,h)\<Turnstile>[x\<noteq>\<^sub>py, z\<noteq>\<^sub>py] \<bar> [x\<longmapsto>z, z\<longmapsto>y]"
-  then obtain v h1 where "\<lbrakk>x\<rbrakk>s = Val v" "h1 = [v\<mapsto>\<lbrakk>y\<rbrakk>s]" by fast
-  moreover obtain x' where "x' \<notin> fv x \<union> fv y" using fv_finite_un by auto
-  moreover from antecedent obtain h2 where "h1 \<bottom> h2" "h = h1 ++ h2" sorry
-  show "(s, h) \<Turnstile> Spat (ls(x, y))" sorry
 qed
   
 end

@@ -1,0 +1,67 @@
+\documentclass[11pt,a4paper]{article}
+\pagestyle{plain} % turn on page numbers
+
+\usepackage{isabelle,isabellesym}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{mathpartir}
+\usepackage{url}
+%\usepackage{tikz}
+%\usepackage{pgfplots}
+
+\usepackage[hidelinks]{hyperref}
+
+% no right margin in quote:
+\renewenvironment{quote}
+{\list{}{}%
+\item\relax}
+{\endlist}
+
+\newcommand{\noquotes}[1]{{\renewcommand{\isachardoublequote}{}\renewcommand{\isachardoublequoteopen}{}\renewcommand{\isachardoublequoteclose}{}#1}}
+
+\isabellestyle{it}
+
+\renewcommand{\isacharunderscore}{\_}
+\renewcommand{\isacharunderscorekeyword}{\_}
+\renewcommand{\isadigit}[1]{{\rm #1}}
+
+% for uniform font size
+\renewcommand{\isastyle}{\isastyleminor}
+
+\newcommand{\eqnum}{\refstepcounter{equation}\hfill(\theequation)}
+
+\hyphenation{Isa-belle}
+
+
+\begin{document}
+
+\title{A Deciable Fragment of Separation Logic}
+\author{Florian Sextl}
+\date{Technical University of Munich\\[\baselineskip] \today}
+\maketitle
+
+\begin{abstract}
+  We present a formalization of the influential paper A Decidable Fragment of
+  Separation Logic \cite{JoshBerdine.2004} by Berdine et al.
+  This formalization follows the original paper in great detail and serves both
+  as a follow up to a seminar paper \cite{seminar-paper} as well as my submission
+  for the Be creative! homework challange in our Semantics of Prgramming Languages
+  course.
+  Another noteworthy followup of the aforemnetioned seminar paper is the proof-of-concept
+  decision procedure Alice\_rs \cite{Alice-rs} which was implemented before this formalization.
+\end{abstract}
+
+\tableofcontents
+
+\pagebreak
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+\input{session.tex}
+
+%\bibliographystyle{splncs03}
+\bibliographystyle{acm}
+\bibliography{root}
+
+\end{document}

@@ -38,8 +38,6 @@ lemmas ls_induct = ls_ind.induct[split_format(complete)]
 lemmas sat_induct = satisfaction.induct[split_format(complete)]
 
 inductive_cases [elim]: "(s,h)\<Turnstile>ls\<^sup>0(e1,e2)" "(s,h)\<Turnstile>ls\<^sup>n(e1,e2)"
-inductive_cases t: "(s,h)\<Turnstile>ls\<^sup>n(e1,e2)"
-thm t
 inductive_cases [elim]: "(s,h)\<Turnstile>Pure(e1=\<^sub>pe2)" "(s,h)\<Turnstile>Pure(e1\<noteq>\<^sub>pe2)" "(s,h)\<Turnstile>PureF []" 
   "(s,f)\<Turnstile>PureF(P \<and>\<^sub>p \<Pi>)" "(s,h)\<Turnstile>Spat(e1 \<longmapsto> e2)" "(s,h)\<Turnstile>SpatF emp" "(s,h)\<Turnstile>SpatF(S * \<Sigma>)"
   "(s,h)\<Turnstile>(\<Pi> \<bar> \<Sigma>)" "(s,h)\<Turnstile>Spat(ls(e1,e2))"
@@ -75,7 +73,9 @@ proof
 qed
 
 text \<open>Order in pure formulae does not matter\<close>
-lemma pure_commut: "(s,h)\<Turnstile>PureF(p1\<and>\<^sub>pp2\<and>\<^sub>p\<Pi>) \<longleftrightarrow> (s,h)\<Turnstile>PureF(p2\<and>\<^sub>pp1\<and>\<^sub>p\<Pi>)" by auto
+corollary pure_commut: "(s,h)\<Turnstile>PureF(p1\<and>\<^sub>pp2\<and>\<^sub>p\<Pi>) \<longleftrightarrow> (s,h)\<Turnstile>PureF(p2\<and>\<^sub>pp1\<and>\<^sub>p\<Pi>)" by auto
+corollary pure_commut_form: "(s,h)\<Turnstile>(p1\<and>\<^sub>pp2\<and>\<^sub>p\<Pi>)\<bar>\<Sigma> \<Longrightarrow> (s,h)\<Turnstile>(p2\<and>\<^sub>pp1\<and>\<^sub>p\<Pi>)\<bar>\<Sigma>"
+using pure_commut by force
 
 text \<open>Singular spatial formulae are only satisfied by singular heaps\<close>
 corollary sing_heap: "(s,h)\<Turnstile>SpatF[x\<longmapsto>y] \<longleftrightarrow> (s,h)\<Turnstile>Spat(x\<longmapsto>y) \<and> (\<exists> v v'. \<lbrakk>x\<rbrakk>s = Val v \<and>
@@ -120,6 +120,8 @@ next
   moreover with h h2 h2' have "h=h3++h2'" by (metis map_add_assoc map_add_comm)
   ultimately show "?P s1 s2" using s1 by auto
 qed
+corollary spatial_commut_form: "(s,h)\<Turnstile>\<Pi>\<bar>(s1*s2*\<Sigma>) \<Longrightarrow> (s,h)\<Turnstile>\<Pi>\<bar>(s2*s1*\<Sigma>)"
+using spatial_commut by force
 
 text \<open>An empty list is equivalent to an empty heap\<close>
 corollary empty_ls: "(s,h)\<Turnstile>SpatF emp \<longleftrightarrow> (s,h)\<Turnstile>Spat(ls(x,x))"
@@ -149,6 +151,32 @@ next
   then show ?case using heap_pure by blast
 qed
 
+corollary eval_notin[simp]: "x \<notin> fv e \<Longrightarrow> \<lbrakk>e\<rbrakk>s=\<lbrakk>e\<rbrakk>s(x:=v)"
+by (cases e) auto
+
+corollary ls_extend_lhs: "\<lbrakk>(s(x:=v),h)\<Turnstile>ls\<^sup>n(e1,e2); x \<notin> fv e1 \<union> fv e2\<rbrakk> \<Longrightarrow> (s,h)\<Turnstile>ls\<^sup>n(e1,e2)"
+proof (induction "s(x:=v)" h n e1 e2 arbitrary: rule: ls_induct)
+  case (EmptyLs e1 e2 h)
+  from EmptyLs.prems have "x \<notin> fv e1" "x \<notin> fv e2" by auto
+  hence "\<lbrakk>e1\<rbrakk>s=\<lbrakk>e1\<rbrakk>s(x:=v)" "\<lbrakk>e2\<rbrakk>s=\<lbrakk>e2\<rbrakk>s(x:=v)" using eval_notin by simp_all
+  with EmptyLs.hyps show ?case using eval_notin by auto
+next
+case (ListSegment e1 v' h1 v'' x' e2 h2 h m n)
+  from ListSegment.prems have "x \<notin> fv e1" "x \<notin> fv e2" by auto
+  hence "\<lbrakk>e1\<rbrakk>s=\<lbrakk>e1\<rbrakk>s(x:=v)" "\<lbrakk>e2\<rbrakk>s=\<lbrakk>e2\<rbrakk>s(x:=v)" using eval_notin by simp_all
+  hence "\<lbrakk>e1\<rbrakk>s = Val v'" "\<lbrakk>e1\<rbrakk>s \<noteq> \<lbrakk>e2\<rbrakk>s" using ListSegment(1,9) by auto
+  from ls_ind.ListSegment[OF this(1) ListSegment(2-5) _ ListSegment(8) this(2)] 
+  ListSegment(6,7) show ?case sorry
+qed
+
+corollary ls_extend_rhs: "\<lbrakk>(s,h)\<Turnstile>ls\<^sup>n(e1,e2); x \<notin> fv e1 \<union> fv e2\<rbrakk> \<Longrightarrow> (s(x:=v),h)\<Turnstile>ls\<^sup>n(e1,e2)"
+proof (induction arbitrary: x rule: ls_induct)
+  case (EmptyLs e1 s e2 h)
+  then show ?case using eval_notin by (metis UnI1 UnI2 ls_ind.EmptyLs)
+next
+  case (ListSegment e1 s v h1 v' x' e2 h2 h m n)
+  then show ?case using eval_notin sorry
+qed
 
 text \<open>The following lemmata are used to proof the substitution rule\<close>
 lemma subst_expr: "\<lbrakk>\<acute>x`\<rbrakk>s = \<lbrakk>E\<rbrakk>s \<Longrightarrow> \<lbrakk>subst x E e\<rbrakk>s = \<lbrakk>e\<rbrakk>s"
@@ -174,6 +202,18 @@ proof (induction "s(x:=v)"h n "\<acute>x`" "e" rule: ls_induct)
 next
   case (ListSegment v' h1 v'' x' e2 h2 h m n)
   then show ?case sorry
+qed
+
+lemma ls_change_fst_general: "\<lbrakk>(s,h)\<Turnstile>ls\<^sup>n(a,e); \<lbrakk>a\<rbrakk>s=\<lbrakk>b\<rbrakk>s\<rbrakk> \<Longrightarrow> (s,h)\<Turnstile>ls\<^sup>n(b,e)"
+proof (induction rule: ls_induct)
+  case (EmptyLs e1 s e2 h)
+  then show ?case by auto
+next
+  case (ListSegment e1 s v h1 v' x e2 h2 h m n)
+  hence "\<lbrakk>b\<rbrakk>s = Val v" by metis
+  moreover from ListSegment.prems(1) ListSegment.hyps(8) have "\<lbrakk>b\<rbrakk>s \<noteq> \<lbrakk>e2\<rbrakk>s" by simp
+  ultimately show ?case using ListSegment.hyps(2-7) ls_ind.ListSegment
+  sorry
 qed
 
 lemma ls_change_snd: "\<lbrakk>(s,h)\<Turnstile>ls\<^sup>n(e,e1); \<lbrakk>e1\<rbrakk>s = \<lbrakk>e2\<rbrakk>s\<rbrakk> \<Longrightarrow> (s,h)\<Turnstile>ls\<^sup>n(e,e2)"
