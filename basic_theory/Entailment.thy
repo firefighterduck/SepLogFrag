@@ -45,16 +45,17 @@ qed
 
 lemma one_entails_ls: "[x\<noteq>\<^sub>py] \<bar> [x\<longmapsto>y] \<turnstile> Spat (ls(x,y))"
 proof (rule entailment_lift)
+  define xs where xs: "xs = - (fv x \<union> fv y)"
   fix s h
   assume antecedent: "(s,h)\<Turnstile>[x\<noteq>\<^sub>py] \<bar> [x \<longmapsto> y]"
   hence "\<lbrakk>x\<rbrakk>s\<noteq>\<lbrakk>y\<rbrakk>s" by blast
   moreover from antecedent obtain v where "\<lbrakk>x\<rbrakk>s = Val v" "h = [v\<mapsto>\<lbrakk>y\<rbrakk>s]" by fastforce
-  moreover obtain x' where "x' \<notin> fv x \<union> fv y" using fv_finite_un by auto
   moreover have "h=h++Map.empty" "h \<bottom> Map.empty" by auto
-  moreover have "(s(x':=\<lbrakk>y\<rbrakk>s),Map.empty)\<Turnstile>ls\<^sup>0(\<acute>x'`,y)"
+  moreover have "\<forall>x' \<in> xs. (s(x':=\<lbrakk>y\<rbrakk>s),Map.empty)\<Turnstile>ls\<^sup>0(\<acute>x'`,y)"
     by (metis EmptyLs dom_empty eval.simps(1) eval.simps(2) fun_upd_apply fv_expr.cases)
   moreover have "1 = Suc 0" by simp
-  ultimately have "(s,h)\<Turnstile>ls\<^sup>1(x,y)" using ListSegment[of x s v h "\<lbrakk>y\<rbrakk>s" x' y Map.empty h 0 1] by blast
+  moreover from xs have "xs \<subseteq> - (fv x \<union> fv y)" by simp
+  ultimately have "(s,h)\<Turnstile>ls\<^sup>1(x,y)" using ListSegment by blast
   thus "(s,h)\<Turnstile>Spat(ls(x, y))" by blast
 qed
   

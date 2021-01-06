@@ -4,7 +4,7 @@ session Sep_Log_Frag = HOL +
   description "
     A decidable fragment of separation logic
   "
-  options [quick_and_dirty = true, timeout = 1200]
+  options [quick_and_dirty = false, timeout = 1200]
   directories
     "basic_theory"
     "decision_procedure"

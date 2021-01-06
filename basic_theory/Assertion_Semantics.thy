@@ -3,10 +3,10 @@ imports Assertion_Lang Assertion_Misc
 begin
 
 section \<open>Semantics\<close>
-text \<open> Defines the syntax for the assertion language formulae\<close>
+text \<open>Defines the syntax for the assertion language formulae.\<close>
 
 subsection \<open>Satisfaction predicate\<close>
-text \<open>Satisfactions describe the semantics of the assertion language\<close>
+text \<open>Satisfactions describe the semantics of the assertion language.\<close>
 
 fun eval :: "expr \<Rightarrow> stack \<Rightarrow> val" where
   "eval (nil) s = Nilval" |
@@ -17,8 +17,12 @@ text \<open>A satisfaction with a ls segment holds iff there exists a path of he
   point to each other and that form a super list of the given segment.\<close>
 inductive ls_ind :: "state \<Rightarrow> nat \<Rightarrow> (expr \<times> expr) \<Rightarrow> bool" ("_\<Turnstile>ls\<^sup>__" 50) where
 EmptyLs: "\<lbrakk>e1\<rbrakk>s = \<lbrakk>e2\<rbrakk>s \<Longrightarrow> dom h = {} \<Longrightarrow> (s,h)\<Turnstile>ls\<^sup>0(e1,e2)" |
-ListSegment: "\<lbrakk>e1\<rbrakk>s = Val v \<Longrightarrow> h1 = [v\<mapsto>v'] \<Longrightarrow> x \<notin> fv e1 \<union> fv e2 \<Longrightarrow> h1 \<bottom> h2 \<Longrightarrow> h = h1++h2
-   \<Longrightarrow> (s(x:=v'),h2)\<Turnstile>ls\<^sup>m(\<acute>x`,e2) \<Longrightarrow> n = Suc m \<Longrightarrow> \<lbrakk>e1\<rbrakk>s \<noteq> \<lbrakk>e2\<rbrakk>s \<Longrightarrow> (s,h)\<Turnstile>ls\<^sup>n(e1,e2)"
+ListSegment: "\<lbrakk>e1\<rbrakk>s = Val v' \<Longrightarrow> h1 = [v'\<mapsto>v] \<Longrightarrow> xs \<subseteq> -(fv e1 \<union> fv e2) 
+  \<Longrightarrow> (\<forall>x \<in> xs. ((s(x:=v),h2)\<Turnstile>ls\<^sup>m(\<acute>x`,e2))) \<Longrightarrow> h1 \<bottom> h2 \<Longrightarrow> h = h1++h2 \<Longrightarrow> n = Suc m 
+  \<Longrightarrow> \<lbrakk>e1\<rbrakk>s \<noteq> \<lbrakk>e2\<rbrakk>s \<Longrightarrow> (s,h)\<Turnstile>ls\<^sup>n(e1,e2)"
+(* ListSegment: "\<lbrakk>e1\<rbrakk>s = Val v' \<Longrightarrow> h1 = [v'\<mapsto>v] \<Longrightarrow> x \<notin> fv e1 \<union> fv e2 \<Longrightarrow> (s(x:=v),h2)\<Turnstile>ls\<^sup>m(\<acute>x`,e2) 
+  \<Longrightarrow> h1 \<bottom> h2 \<Longrightarrow> h = h1++h2 \<Longrightarrow> n = Suc m \<Longrightarrow> \<lbrakk>e1\<rbrakk>s \<noteq> \<lbrakk>e2\<rbrakk>s \<Longrightarrow> (s,h)\<Turnstile>ls\<^sup>n(e1,e2)" *)
+
   
 inductive satisfaction :: "state \<Rightarrow> formula \<Rightarrow> bool" (infix "\<Turnstile>" 50) where
 EqSat: "\<lbrakk>e1\<rbrakk>s=\<lbrakk>e2\<rbrakk>s \<Longrightarrow> (s,h)\<Turnstile>Pure(e1=\<^sub>pe2)" |
@@ -43,13 +47,13 @@ inductive_cases [elim]: "(s,h)\<Turnstile>Pure(e1=\<^sub>pe2)" "(s,h)\<Turnstile
   "(s,h)\<Turnstile>(\<Pi> \<bar> \<Sigma>)" "(s,h)\<Turnstile>Spat(ls(e1,e2))"
 
 subsection \<open>Satisfaction properties\<close>
-text \<open>There are a number of helpful properties that follow from the satisfaction definition\<close>
+text \<open>There are a number of helpful properties that follow from the satisfaction definition.\<close>
 
-text \<open>Satisfaction is decidable, cf. Lemma 1\<close>
+text \<open>Satisfaction is decidable, cf. Lemma 1 \cite{JoshBerdine.2004}.\<close>
 corollary sat_decidable: "(s,h)\<Turnstile>F \<or> \<not> (s,h)\<Turnstile>F"
 by simp
 
-text \<open>Separating conjunctions are only allowed on distinct heap parts\<close>
+text \<open>Separating conjunctions are only allowed on distinct heap parts.\<close>
 corollary sep_conj_ortho: "\<nexists>s h. (s,h) \<Turnstile> [\<acute>x`=\<^sub>p\<acute>y`] \<bar> [\<acute>x` \<longmapsto> xv, \<acute>y` \<longmapsto> yv]"
 proof
   assume "\<exists>s h. (s, h) \<Turnstile> [\<acute>x` =\<^sub>p \<acute>y`] \<bar> [\<acute>x` \<longmapsto> xv, \<acute>y` \<longmapsto> yv]"
@@ -72,12 +76,12 @@ proof
   with \<open>h1 \<bottom> h2\<close> show False by simp
 qed
 
-text \<open>Order in pure formulae does not matter\<close>
+text \<open>Order in pure formulae does not matter.\<close>
 corollary pure_commut: "(s,h)\<Turnstile>PureF(p1\<and>\<^sub>pp2\<and>\<^sub>p\<Pi>) \<longleftrightarrow> (s,h)\<Turnstile>PureF(p2\<and>\<^sub>pp1\<and>\<^sub>p\<Pi>)" by auto
 corollary pure_commut_form: "(s,h)\<Turnstile>(p1\<and>\<^sub>pp2\<and>\<^sub>p\<Pi>)\<bar>\<Sigma> \<Longrightarrow> (s,h)\<Turnstile>(p2\<and>\<^sub>pp1\<and>\<^sub>p\<Pi>)\<bar>\<Sigma>"
 using pure_commut by force
 
-text \<open>Singular spatial formulae are only satisfied by singular heaps\<close>
+text \<open>Singular spatial formulae are only satisfied by singular heaps.\<close>
 corollary sing_heap: "(s,h)\<Turnstile>SpatF[x\<longmapsto>y] \<longleftrightarrow> (s,h)\<Turnstile>Spat(x\<longmapsto>y) \<and> (\<exists> v v'. \<lbrakk>x\<rbrakk>s = Val v \<and>
    \<lbrakk>y\<rbrakk>s = v' \<and> h = [v\<mapsto>v'])" (is "?lhs \<longleftrightarrow> ?rhs")
 proof
@@ -93,7 +97,7 @@ next
   thus "?lhs" by simp
 qed
 
-text \<open>Order in spatial formulae does not matter\<close>
+text \<open>Order in spatial formulae does not matter.\<close>
 corollary spatial_commut: "(s,h)\<Turnstile>SpatF(s1*s2*\<Sigma>) \<longleftrightarrow> (s,h)\<Turnstile>SpatF(s2*s1*\<Sigma>)" (is "?P s1 s2 \<longleftrightarrow> ?p s2 s1")
 proof
   assume "?P s1 s2"
@@ -123,7 +127,7 @@ qed
 corollary spatial_commut_form: "(s,h)\<Turnstile>\<Pi>\<bar>(s1*s2*\<Sigma>) \<Longrightarrow> (s,h)\<Turnstile>\<Pi>\<bar>(s2*s1*\<Sigma>)"
 using spatial_commut by force
 
-text \<open>An empty list is equivalent to an empty heap\<close>
+text \<open>An empty list is equivalent to an empty heap.\<close>
 corollary empty_ls: "(s,h)\<Turnstile>SpatF emp \<longleftrightarrow> (s,h)\<Turnstile>Spat(ls(x,x))"
 proof
   assume "(s, h) \<Turnstile> SpatF emp"
@@ -151,127 +155,107 @@ next
   then show ?case using heap_pure by blast
 qed
 
+text \<open>Evaluation does not rely on unrelated variable values\<close>
 corollary eval_notin[simp]: "x \<notin> fv e \<Longrightarrow> \<lbrakk>e\<rbrakk>s=\<lbrakk>e\<rbrakk>s(x:=v)"
 by (cases e) auto
 
-corollary ls_extend_lhs: "\<lbrakk>(s(x:=v),h)\<Turnstile>ls\<^sup>n(e1,e2); x \<notin> fv e1 \<union> fv e2\<rbrakk> \<Longrightarrow> (s,h)\<Turnstile>ls\<^sup>n(e1,e2)"
-proof (induction "s(x:=v)" h n e1 e2 arbitrary: rule: ls_induct)
-  case (EmptyLs e1 e2 h)
-  from EmptyLs.prems have "x \<notin> fv e1" "x \<notin> fv e2" by auto
-  hence "\<lbrakk>e1\<rbrakk>s=\<lbrakk>e1\<rbrakk>s(x:=v)" "\<lbrakk>e2\<rbrakk>s=\<lbrakk>e2\<rbrakk>s(x:=v)" using eval_notin by simp_all
-  with EmptyLs.hyps show ?case using eval_notin by auto
-next
-case (ListSegment e1 v' h1 v'' x' e2 h2 h m n)
-  from ListSegment.prems have "x \<notin> fv e1" "x \<notin> fv e2" by auto
-  hence "\<lbrakk>e1\<rbrakk>s=\<lbrakk>e1\<rbrakk>s(x:=v)" "\<lbrakk>e2\<rbrakk>s=\<lbrakk>e2\<rbrakk>s(x:=v)" using eval_notin by simp_all
-  hence "\<lbrakk>e1\<rbrakk>s = Val v'" "\<lbrakk>e1\<rbrakk>s \<noteq> \<lbrakk>e2\<rbrakk>s" using ListSegment(1,9) by auto
-  from ls_ind.ListSegment[OF this(1) ListSegment(2-5) _ ListSegment(8) this(2)] 
-  ListSegment(6,7) show ?case sorry
-qed
-
-corollary ls_extend_rhs: "\<lbrakk>(s,h)\<Turnstile>ls\<^sup>n(e1,e2); x \<notin> fv e1 \<union> fv e2\<rbrakk> \<Longrightarrow> (s(x:=v),h)\<Turnstile>ls\<^sup>n(e1,e2)"
-proof (induction arbitrary: x rule: ls_induct)
+text \<open>Only the two ls expressions are stack related\<close>
+corollary ls_stack_relation: "\<lbrakk>(s,h)\<Turnstile>ls\<^sup>n(e1,e2); \<lbrakk>e1\<rbrakk>s=\<lbrakk>e1\<rbrakk>t; \<lbrakk>e2\<rbrakk>s=\<lbrakk>e2\<rbrakk>t\<rbrakk> \<Longrightarrow> (t,h)\<Turnstile>ls\<^sup>n(e1,e2)"
+proof (induction arbitrary: t rule: ls_induct)
   case (EmptyLs e1 s e2 h)
-  then show ?case using eval_notin by (metis UnI1 UnI2 ls_ind.EmptyLs)
+  then show ?case by auto
 next
-  case (ListSegment e1 s v h1 v' x' e2 h2 h m n)
-  then show ?case using eval_notin sorry
+  case (ListSegment e1 s v' h1 v xs e2 h2 m h n)
+  from ListSegment.hyps(1) ListSegment.prems(1) have e1: "\<lbrakk>e1\<rbrakk>t = Val v'" by simp
+  from ListSegment.hyps(7) ListSegment.prems have neq: "\<lbrakk>e1\<rbrakk>t \<noteq> \<lbrakk>e2\<rbrakk>t" by simp
+  have "\<forall>x \<in> xs. (t(x:=v),h2)\<Turnstile>ls\<^sup>m(\<acute>x`, e2)" 
+  proof
+    fix x :: var
+    assume assm: "x \<in> xs"
+    with ListSegment.IH have aux:
+      "\<lbrakk>\<acute>x`\<rbrakk>s(x := v) = \<lbrakk>\<acute>x`\<rbrakk>xa \<Longrightarrow> \<lbrakk>e2\<rbrakk>s(x := v) = \<lbrakk>e2\<rbrakk>xa \<Longrightarrow> (xa, h2)\<Turnstile>ls\<^sup>m(\<acute>x`, e2)" for xa
+       by blast
+    have "\<lbrakk>\<acute>x`\<rbrakk>s(x:=v) = \<lbrakk>\<acute>x`\<rbrakk>t(x:=v)" "\<lbrakk>e2\<rbrakk>s(x:=v) = \<lbrakk>e2\<rbrakk>t(x:=v)" using assm ListSegment.prems 
+      apply simp using assm ListSegment.prems ListSegment(3)
+      by (metis ComplD UnCI eval_notin subsetD)
+    from aux[OF this] show "(t(x:=v),h2)\<Turnstile>ls\<^sup>m(\<acute>x`, e2)" .
+  qed
+  from ls_ind.ListSegment[OF e1 ListSegment(2-3) this ListSegment(4-6) neq] show ?case .
 qed
 
-text \<open>The following lemmata are used to proof the substitution rule\<close>
+lemma ls_extend_lhs: "\<lbrakk>(s(x:=v),h)\<Turnstile>ls\<^sup>n(e1,e2); x \<notin> fv e1 \<union> fv e2\<rbrakk> \<Longrightarrow> (s,h)\<Turnstile>ls\<^sup>n(e1,e2)"
+proof -
+  assume assm1: "(s(x:=v),h)\<Turnstile>ls\<^sup>n(e1,e2)"
+  assume assm2: "x \<notin> fv e1 \<union> fv e2"
+  hence "\<lbrakk>e1\<rbrakk>s(x:=v) = \<lbrakk>e1\<rbrakk>s" "\<lbrakk>e2\<rbrakk>s(x:=v) = \<lbrakk>e2\<rbrakk>s" using eval_notin by fastforce+
+  from ls_stack_relation[OF assm1 this] show ?thesis .
+qed
+
+lemma ls_extend_rhs: "\<lbrakk>(s,h)\<Turnstile>ls\<^sup>n(e1,e2); x \<notin> fv e1 \<union> fv e2\<rbrakk> \<Longrightarrow> (s(x:=v),h)\<Turnstile>ls\<^sup>n(e1,e2)"
+proof -
+  assume assm1: "(s,h)\<Turnstile>ls\<^sup>n(e1,e2)"
+  assume assm2: "x \<notin> fv e1 \<union> fv e2"
+  hence "\<lbrakk>e1\<rbrakk>s = \<lbrakk>e1\<rbrakk>s(x:=v) " "\<lbrakk>e2\<rbrakk>s = \<lbrakk>e2\<rbrakk>s(x:=v)" using eval_notin by fastforce+
+  from ls_stack_relation[OF assm1 this] show ?thesis .
+qed
+
+corollary ls_extend: "x \<notin> fv e1 \<union> fv e2 \<Longrightarrow> ((s,h)\<Turnstile>ls\<^sup>n(e1,e2)) = ((s(x:=v),h)\<Turnstile>ls\<^sup>n(e1,e2))"
+  using ls_extend_lhs ls_extend_rhs by metis 
+
+text \<open>The following lemmata are used to proof the substitution rule:\<close>
 lemma subst_expr: "\<lbrakk>\<acute>x`\<rbrakk>s = \<lbrakk>E\<rbrakk>s \<Longrightarrow> \<lbrakk>subst x E e\<rbrakk>s = \<lbrakk>e\<rbrakk>s"
 using subst_expr.elims by metis
 
-lemma ls_change_fst:"\<lbrakk>(s(x:=v),h)\<Turnstile>ls\<^sup>n(\<acute>x`,e);x \<notin> fv e; y \<notin> fv e\<rbrakk> \<Longrightarrow> (s(y:=v),h)\<Turnstile>ls\<^sup>n(\<acute>y`,e)"
-proof (induction "s(x:=v)"h n "\<acute>x`" "e" rule: ls_induct)
-  case (EmptyLs e h)
-  have "\<lbrakk>\<acute>x`\<rbrakk>s(x := v) = v" "\<lbrakk>\<acute>y`\<rbrakk>s(y := v) = v" by simp_all
-  with EmptyLs.hyps(1) have "\<lbrakk>\<acute>y`\<rbrakk>s(y := v) = \<lbrakk>e\<rbrakk>s(x:=v)" by simp
-  moreover { 
-    from EmptyLs.prems have "e\<noteq>\<acute>x`" by auto
-    hence "\<lbrakk>e\<rbrakk>s = \<lbrakk>e\<rbrakk>s(x:=v)"
-    by (metis eval.simps(1) eval.simps(2) fun_upd_apply fv_expr.cases)
-  }
-  moreover {
-  from EmptyLs.prems have "e\<noteq>\<acute>y`" by auto
-    hence "\<lbrakk>e\<rbrakk>s = \<lbrakk>e\<rbrakk>s(y:=v)"
-    by (metis eval.simps(1) eval.simps(2) fun_upd_apply fv_expr.cases)
-  }
-  ultimately have "\<lbrakk>\<acute>y`\<rbrakk>s(y := v) = \<lbrakk>e\<rbrakk>s(y:=v)" by simp
-  with EmptyLs.hyps(2) show ?case by blast
-next
-  case (ListSegment v' h1 v'' x' e2 h2 h m n)
-  then show ?case sorry
-qed
-
-lemma ls_change_fst_general: "\<lbrakk>(s,h)\<Turnstile>ls\<^sup>n(a,e); \<lbrakk>a\<rbrakk>s=\<lbrakk>b\<rbrakk>s\<rbrakk> \<Longrightarrow> (s,h)\<Turnstile>ls\<^sup>n(b,e)"
+lemma ls_change_fst: "\<lbrakk>(s,h)\<Turnstile>ls\<^sup>n(a,e); \<lbrakk>a\<rbrakk>s=\<lbrakk>b\<rbrakk>s\<rbrakk> \<Longrightarrow> (s,h)\<Turnstile>ls\<^sup>n(b,e)"
 proof (induction rule: ls_induct)
   case (EmptyLs e1 s e2 h)
   then show ?case by auto
 next
-  case (ListSegment e1 s v h1 v' x e2 h2 h m n)
-  hence "\<lbrakk>b\<rbrakk>s = Val v" by metis
-  moreover from ListSegment.prems(1) ListSegment.hyps(8) have "\<lbrakk>b\<rbrakk>s \<noteq> \<lbrakk>e2\<rbrakk>s" by simp
-  ultimately show ?case using ListSegment.hyps(2-7) ls_ind.ListSegment
-  sorry
+  case (ListSegment a s v h1 v' xs e h2 h m n)
+  hence b: "\<lbrakk>b\<rbrakk>s = Val v" by metis
+  define xs' where xs': "xs' =  xs - fv b"
+  with ListSegment(3) have "xs' \<subseteq> - (fv a \<union> fv e) - fv b" by auto
+  hence xs'_sub: "xs' \<subseteq> - (fv b \<union> fv e)" by auto
+  have ih: "\<forall>x\<in> xs'. (s(x := v'), h2)\<Turnstile>ls\<^sup>h(\<acute>x`, e)" 
+  proof
+    fix x
+    assume "x \<in> xs'"
+    with xs' have "x \<in> xs" by simp
+    thus "(s(x := v'), h2)\<Turnstile>ls\<^sup>h(\<acute>x`, e)" using ListSegment.IH by simp
+  qed
+  from ListSegment.prems(1) ListSegment.hyps(7) have "\<lbrakk>b\<rbrakk>s \<noteq> \<lbrakk>e\<rbrakk>s" by simp
+  from ls_ind.ListSegment[OF b ListSegment.hyps(2) xs'_sub ih ListSegment.hyps(4-6) this] show ?case .
 qed
 
-lemma ls_change_snd: "\<lbrakk>(s,h)\<Turnstile>ls\<^sup>n(e,e1); \<lbrakk>e1\<rbrakk>s = \<lbrakk>e2\<rbrakk>s\<rbrakk> \<Longrightarrow> (s,h)\<Turnstile>ls\<^sup>n(e,e2)"
+lemma ls_change_snd: "\<lbrakk>(s,h)\<Turnstile>ls\<^sup>n(e,a); \<lbrakk>a\<rbrakk>s = \<lbrakk>b\<rbrakk>s\<rbrakk> \<Longrightarrow> (s,h)\<Turnstile>ls\<^sup>n(e,b)"
 proof (induction rule: ls_induct)
   case (EmptyLs e1' s e2' h)
   then show ?case by auto
 next
-  case (ListSegment e1' s v h1 v' x e2' h2 h m n)
-  then show ?case 
-  sorry
+  case (ListSegment e s v h1 v' xs a h2 h m n)
+  define xs' where xs': "xs' = xs - fv b"
+  with ListSegment(3) have "xs' \<subseteq> - (fv e \<union> fv a) - fv b" by auto
+  hence xs'_sub: "xs' \<subseteq> - (fv e \<union> fv b)" by auto
+  have ih: "\<forall>x\<in> xs'. (s(x := v'), h2)\<Turnstile>ls\<^sup>h(\<acute>x`, b)" 
+  proof
+    fix x
+    assume x: "x \<in> xs'"
+    with xs' have "x \<notin> fv b" by simp
+    moreover from x xs' ListSegment(3) have "x \<notin> fv a" by auto
+    ultimately have "\<lbrakk>b\<rbrakk>s(x := v') = \<lbrakk>b\<rbrakk>s"  "\<lbrakk>a\<rbrakk>s(x := v') = \<lbrakk>a\<rbrakk>s" using eval_notin by metis+
+    with ListSegment.prems have "\<lbrakk>a\<rbrakk>s(x := v') = \<lbrakk>b\<rbrakk>s(x := v')" by simp
+    from x xs' have "x \<in> xs" by simp
+    hence "\<lbrakk>a\<rbrakk>s(x := v') = \<lbrakk>b\<rbrakk>s(x := v') \<Longrightarrow> (s(x := v'), h2)\<Turnstile>ls\<^sup>h(\<acute>x`, b)" using ListSegment.IH 
+      by blast
+    from this[OF \<open>\<lbrakk>a\<rbrakk>s(x := v') = \<lbrakk>b\<rbrakk>s(x := v')\<close>] show "(s(x := v'), h2)\<Turnstile>ls\<^sup>h(\<acute>x`, b)" .
+  qed
+  from ListSegment.prems ListSegment.hyps(7) have "\<lbrakk>e\<rbrakk>s \<noteq> \<lbrakk>b\<rbrakk>s" by simp
+  from ls_ind.ListSegment[OF ListSegment(1-2) xs'_sub ih ListSegment(4-6) this] show ?case .
 qed
 
-lemma subst_sat_ls: "\<lbrakk>\<exists>n. (s,h)\<Turnstile>ls\<^sup>n(e1',e2'); e1' = subst x E e1; e2' = subst x E e2; \<lbrakk>\<acute>x`\<rbrakk>s=\<lbrakk>E\<rbrakk>s\<rbrakk>
-  \<Longrightarrow> \<exists>m. (s,h)\<Turnstile>ls\<^sup>m(e1,e2)"
-proof -
-assume "\<exists>n. (s,h)\<Turnstile>ls\<^sup>n(e1',e2')"
-then obtain n where n: "(s,h)\<Turnstile>ls\<^sup>n(e1',e2')" by blast
-assume e1: "e1' = subst x E e1"
-assume e2: "e2' = subst x E e2"
-assume s_eq: "\<lbrakk>\<acute>x`\<rbrakk>s=\<lbrakk>E\<rbrakk>s"
-from subst_expr[OF s_eq] e1 e2 have subst_eqs: "\<lbrakk>e1'\<rbrakk>s = \<lbrakk>e1\<rbrakk>s" "\<lbrakk>e2'\<rbrakk>s = \<lbrakk>e2\<rbrakk>s" by simp_all
-show ?thesis proof (cases "\<acute>x`=E")
-case True
-with subst_reflexive e1 e2 have "e1=e1'" "e2=e2'" by simp_all
-with n show ?thesis by blast
-next
-case False
-with subst_fv_expr e1 e2 have "x \<notin> fv e1'" "x \<notin> fv e2'" by simp_all
-hence x: "x \<notin> fv e1' \<union> fv e2'" by simp 
-then show ?thesis proof (cases n)
-    case 0
-    with n have s_eq2: "\<lbrakk>e1'\<rbrakk>s = \<lbrakk>e2'\<rbrakk>s" by auto
-    with subst_eqs have "\<lbrakk>e1\<rbrakk>s = \<lbrakk>e2\<rbrakk>s" by simp
-    moreover from 0 n have "dom h = {}" by blast
-    ultimately have "(s,h)\<Turnstile>ls\<^sup>0(e1,e2)" by blast
-    then show ?thesis by blast
-  next
-    case (Suc m)
-    from fv_other_x_un[OF x] obtain y where y:"y \<notin> fv e1' \<union> fv e2'" "y\<noteq>x" by blast
-    with Suc n obtain v v' x' h1 h2 where IH: "\<lbrakk>e1'\<rbrakk>s = Val v" "h1 = [v\<mapsto>v']" "h = h1++h2" "h1 \<bottom> h2" 
-      and x: "(s(x':=v'),h2)\<Turnstile>ls\<^sup>m(\<acute>x'`,e2')" "x' \<notin> fv e1' \<union> fv e2'" by fastforce
-    from n Suc have "\<lbrakk>e1'\<rbrakk>s \<noteq> \<lbrakk>e2'\<rbrakk>s" by auto
-    with IH subst_eqs have "\<lbrakk>e1\<rbrakk>s = Val v" "\<lbrakk>e1\<rbrakk>s \<noteq> \<lbrakk>e2\<rbrakk>s" by simp_all
-    moreover {
-      from x e1 e2 y have "y \<notin> fv e1 \<union> fv e2 - {x}" 
-        using subst_fv_expr_set_un[OF False, of e1 e2] by blast
-        with y have "y \<notin> fv e1 \<union> fv e2" by simp
-    }
-    moreover {
-      from x ls_change_fst y(1) have "(s(y := v'), h2)\<Turnstile>ls\<^sup>m(\<acute>y`, e2')" by blast
-      from e2 subst_expr[OF s_eq, of e2] ls_change_snd[OF this] y have "(s(y := v'), h2)\<Turnstile>ls\<^sup>m(\<acute>y`, e2)"
-      sorry
-    }
-    ultimately have "(s,h)\<Turnstile>ls\<^sup>n(e1,e2)" using IH Suc by blast
-    thus ?thesis by blast
-  qed
-qed
-qed
+lemma subst_sat_ls: "\<lbrakk>(s,h)\<Turnstile>ls\<^sup>n(e1',e2'); e1' = subst x E e1; e2' = subst x E e2; \<lbrakk>\<acute>x`\<rbrakk>s=\<lbrakk>E\<rbrakk>s\<rbrakk>
+  \<Longrightarrow> (s,h)\<Turnstile>ls\<^sup>n(e1,e2)" 
+  using ls_change_snd ls_change_fst subst_expr by metis
 
 lemma subst_sat:"\<lbrakk>(s,h)\<Turnstile>F'; F'=subst x E F; \<lbrakk>\<acute>x`\<rbrakk>s=\<lbrakk>E\<rbrakk>s\<rbrakk> \<Longrightarrow> (s,h)\<Turnstile>F"
 proof (induction arbitrary: F rule: sat_induct)
@@ -365,8 +349,15 @@ next
   with F show ?case by auto
 next
   case (LsSat s h n e1 e2)
-  then show ?case sorry
+  from LsSat(2) obtain e1' e2' where F:"F = Spat (ls(e1', e2'))" using subst_distinct_formula4
+    by (metis formula.inject(3) subst_distinct_spat2 subst_formula.simps(3))
+  with LsSat(2) have "e1 = subst x E e1'" "e2 = subst x E e2'" by simp_all
+  from subst_sat_ls[OF LsSat(1) this LsSat(3)] show ?case using F by auto
 qed
+
+lemma subst_sat_ls_rev: "\<lbrakk>(s,h)\<Turnstile>ls\<^sup>n(e1',e2'); e1 = subst x E e1'; e2 = subst x E e2'; \<lbrakk>\<acute>x`\<rbrakk>s=\<lbrakk>E\<rbrakk>s\<rbrakk>
+  \<Longrightarrow> (s,h)\<Turnstile>ls\<^sup>n(e1,e2)"
+  using ls_change_snd ls_change_fst subst_expr by metis
 
 lemma subst_sat_rev:"\<lbrakk>(s,h)\<Turnstile>F; \<lbrakk>\<acute>x`\<rbrakk>s=\<lbrakk>E\<rbrakk>s\<rbrakk> \<Longrightarrow> (s,h)\<Turnstile>subst x E F"
 proof (induction rule: sat_induct)
@@ -383,7 +374,9 @@ next
     subst_not_eq_expr subst_spatial.simps(1))
 next
   case (LsSat s h n e1 e2)
-  then show ?case sorry
+  obtain e1' e2' where F: "subst x E (Spat (ls(e1, e2))) = Spat (ls(e1', e2'))" by simp
+  hence  "e1' = subst x E e1" "e2' = subst x E e2" by simp_all
+  from subst_sat_ls_rev[OF LsSat(1) this LsSat(2)] show ?case using F by auto
 qed auto
 
 lemma subst_sat_eq: "\<lbrakk>F'=subst x E F; \<lbrakk>\<acute>x`\<rbrakk>s=\<lbrakk>E\<rbrakk>s\<rbrakk> \<Longrightarrow> ((s,h)\<Turnstile>F') = ((s,h)\<Turnstile>F)"
