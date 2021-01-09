@@ -2,7 +2,7 @@ theory Proof_System
 imports "../basic_theory/Entailment"
 begin
 
-section \<open>Rules of the proof System\<close>
+section \<open>Rules of the Proof System\<close>
 text \<open>The proof system at the core of the decision procedure is based on the following rules.\<close>
 
 theorem axiom: "\<Pi>\<bar>emp \<turnstile> \<top>\<bar>emp"
@@ -112,4 +112,14 @@ proof (rule entailment_lift)
   moreover from \<open>(s,h2)\<Turnstile>\<Pi>'\<bar>ls(E\<^sub>2,E\<^sub>3) * \<Sigma>'\<close> have "(s,h)\<Turnstile>PureF \<Pi>'" using heap_puref by fast
   ultimately show "(s,h)\<Turnstile>\<Pi>'\<bar>ls(E\<^sub>1,E\<^sub>3) * \<Sigma>'" by blast
 qed
+
+text \<open>The most important rule UnrollCollapse:\<close>
+theorem UnrollCollapse: 
+assumes "E\<^sub>1=\<^sub>pE\<^sub>2 \<and>\<^sub>p \<Pi>\<bar>\<Sigma> \<turnstile> \<Pi>'\<bar>\<Sigma>'"
+assumes "E\<^sub>1\<noteq>\<^sub>pE\<^sub>2 \<and>\<^sub>p \<acute>x`\<noteq>\<^sub>pE\<^sub>2 \<and>\<^sub>p \<Pi>\<bar>E\<^sub>1\<longmapsto>\<acute>x` * \<acute>x`\<longmapsto>E\<^sub>2 * \<Sigma> \<turnstile> \<Pi>'\<bar>\<Sigma>'"
+assumes "x \<notin> fvl \<Pi> \<union> fv E\<^sub>1 \<union> fv E\<^sub>2 \<union> fvl \<Sigma> \<union> fvl \<Pi>' \<union> fvl \<Sigma>'"
+shows "\<Pi>\<bar>ls(E\<^sub>1,E\<^sub>2) * \<Sigma> \<turnstile> \<Pi>'\<bar>\<Sigma>'"
+(* As explained in the abstract, I had not enough time to prove this rule in parallel to the proof 
+   from the original paper. *)
+sorry
 end

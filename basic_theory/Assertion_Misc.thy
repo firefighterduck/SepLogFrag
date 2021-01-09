@@ -4,11 +4,11 @@ begin
 
 section \<open>Miscellaneous definitions used with the assertion language\<close>
 
-text \<open>A type class of functions that extract used variables (similarly to vars)\<close>
+text \<open>A type class of functions that extract used variables (similarly to vars).\<close>
 class fv =
 fixes fv :: "'a \<Rightarrow> var set"
 
-text \<open>A type class of functions that extract used variables from lists\<close>
+text \<open>A type class of functions that extract used variables from lists.\<close>
 class fvl = fv +
 fixes fvl :: "'a list \<Rightarrow> var set"
 
@@ -81,18 +81,18 @@ ultimately obtain y where "y \<in> -(fv e1 \<union> fv e2)" "y\<noteq>x" using a
 thus ?thesis by auto
 qed
 
-text \<open>Orthogonality property of heaps\<close>
+text \<open>Orthogonality property of heaps.\<close>
 abbreviation "orthogonal h1 h2 \<equiv> dom h1 \<inter> dom h2 = {}"
 notation orthogonal ("_ \<bottom> _" [60, 61] 61)
 
 theorem ortho_commut: "h1 \<bottom> h2 \<longleftrightarrow> h2 \<bottom> h1" by auto
 theorem ortho_distr: "h1 \<bottom> (h2++h3) \<longleftrightarrow> (h1 \<bottom> h2 \<and> h1 \<bottom> h3)" by auto
 
-text \<open>A type class that functions that substitute a variable for another expression\<close>
+text \<open>A type class that functions that substitute a variable for another expression.\<close>
 class subst =
 fixes subst :: "var \<Rightarrow> expr \<Rightarrow> 'a \<Rightarrow> 'a"
 
-text \<open>A type class that functions that substitute a variable for another expression in a list\<close>
+text \<open>A type class that functions that substitute a variable for another expression in a list.\<close>
 class substl = subst +
 fixes substl :: "var \<Rightarrow> expr \<Rightarrow> 'a list \<Rightarrow> 'a list"
 

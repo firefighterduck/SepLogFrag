@@ -3,10 +3,10 @@ imports Assertion_Semantics
 begin
 
 section \<open>Entailments\<close>
-text \<open>Entailments formalize single deduction steps in separation logic\<close>
+text \<open>Entailments formalize single deduction steps in separation logic.\<close>
 
 text \<open>An entailment describes that the consequent is satisfied by at least all states that also 
-      satisfy the antecedent\<close>
+      satisfy the antecedent.\<close>
 definition entails :: "formula \<Rightarrow> formula \<Rightarrow> bool" (infix "\<turnstile>" 50) where
   "antecedent \<turnstile> consequent \<equiv> (\<forall>s h. (s,h)\<Turnstile>antecedent \<longrightarrow> (s,h)\<Turnstile>consequent)"
 
@@ -22,7 +22,7 @@ by (simp add: entails_def)
   
 subsection \<open>Example entailments from the paper\<close>
 
-text \<open>Entailments are reflexive with regard to equality\<close>
+text \<open>Entailments are reflexive with regard to equality.\<close>
 lemma eq_refl: "[\<acute>x`=\<^sub>p\<acute>y`, E=\<^sub>pF] \<bar> [\<acute>x`\<longmapsto>E] \<turnstile> Spat (\<acute>y`\<longmapsto>F)"
 proof(rule entailment_lift)
   fix s h
@@ -30,10 +30,10 @@ proof(rule entailment_lift)
   hence "(s,h)\<Turnstile> PureF [\<acute>x`=\<^sub>p\<acute>y`, E=\<^sub>pF]" by auto
   hence "\<lbrakk>\<acute>x`\<rbrakk>s = \<lbrakk>\<acute>y`\<rbrakk>s" "\<lbrakk>E\<rbrakk>s = \<lbrakk>F\<rbrakk>s" by blast+
   moreover from sing_heap antecedent have "(s,h)\<Turnstile>Spat (\<acute>x`\<longmapsto>E)" by auto
-  ultimately show "(s,h)\<Turnstile>Spat (\<acute>y`\<longmapsto>F)" by fastforce \<comment> \<open>This step should probably become an own lemma\<close>
+  ultimately show "(s,h)\<Turnstile>Spat (\<acute>y`\<longmapsto>F)" by fastforce
 qed
 
-text \<open>In the following some simple entailments for list segment are shown to hold\<close>
+text \<open>In the following some simple entailments for list segment are shown to hold.\<close>
 lemma emp_entails_ls: "[x=\<^sub>py] \<bar> emp \<turnstile> Spat (ls(x,y))"
 proof (rule entailment_lift)
   fix s h
@@ -58,5 +58,4 @@ proof (rule entailment_lift)
   ultimately have "(s,h)\<Turnstile>ls\<^sup>1(x,y)" using ListSegment by blast
   thus "(s,h)\<Turnstile>Spat(ls(x, y))" by blast
 qed
-  
 end

@@ -3,7 +3,7 @@ imports Main
 begin
 
 section \<open>Syntax and Datatytpes\<close>
-text \<open>Defines the language of formulae\<close>
+text \<open>Defines the language of formulae.\<close>
 
 type_synonym var = string
 type_synonym lval = nat

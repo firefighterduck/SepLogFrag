@@ -143,7 +143,7 @@ next
 text \<open>Due to this theorem circular list segements can only be formulated as follows:\<close>
 term "\<acute>x`\<longmapsto>\<acute>y` * ls(\<acute>y`,\<acute>y`) * emp"
 
-text \<open>The heap has no influence on the satisfaction of a pure formula\<close>
+text \<open>The heap has no influence on the satisfaction of a pure formula.\<close>
 corollary heap_pure: "(s,h)\<Turnstile>Pure P \<Longrightarrow>\<forall>h'. (s,h')\<Turnstile>Pure P"
   by (induction s h "Pure P" rule: sat_induct) auto
 corollary heap_puref: "(s,h)\<Turnstile>PureF \<Pi> \<Longrightarrow>\<forall>h'. (s,h')\<Turnstile>PureF \<Pi>"
@@ -155,11 +155,11 @@ next
   then show ?case using heap_pure by blast
 qed
 
-text \<open>Evaluation does not rely on unrelated variable values\<close>
+text \<open>Evaluation does not rely on unrelated variable values.\<close>
 corollary eval_notin[simp]: "x \<notin> fv e \<Longrightarrow> \<lbrakk>e\<rbrakk>s=\<lbrakk>e\<rbrakk>s(x:=v)"
 by (cases e) auto
 
-text \<open>Only the two ls expressions are stack related\<close>
+text \<open>Only the two ls expressions are stack related.\<close>
 corollary ls_stack_relation: "\<lbrakk>(s,h)\<Turnstile>ls\<^sup>n(e1,e2); \<lbrakk>e1\<rbrakk>s=\<lbrakk>e1\<rbrakk>t; \<lbrakk>e2\<rbrakk>s=\<lbrakk>e2\<rbrakk>t\<rbrakk> \<Longrightarrow> (t,h)\<Turnstile>ls\<^sup>n(e1,e2)"
 proof (induction arbitrary: t rule: ls_induct)
   case (EmptyLs e1 s e2 h)
